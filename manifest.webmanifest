@@ -1,0 +1,22 @@
+{
+  "name": "RFID Saha Analiz",
+  "short_name": "RFID Analiz",
+  "description": "Çevrimdışı RFID saha analiz ve PDF rapor prototipi",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#17324d",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

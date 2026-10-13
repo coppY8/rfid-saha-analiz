@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#17324d">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>RFID Saha Analiz</title>
+<style>
+:root{--navy:#17324d;--blue:#dbeafe;--line:#d7dee7;--muted:#64748b;--bg:#f4f7fb}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#172033}
+header{background:var(--navy);color:white;padding:20px 16px}header h1{font-size:22px;margin:0 0 5px}header p{margin:0;color:#dbeafe;font-size:13px}
+main{max-width:760px;margin:0 auto;padding:14px}
+.card{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px;box-shadow:0 2px 8px #0f172a0a}
+h2{font-size:17px;margin:0 0 14px;color:var(--navy)}h3{font-size:15px;margin:0 0 12px}
+label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:white;color:#172033}
+textarea{min-height:90px;resize:vertical}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;border:0;border-radius:10px;padding:12px 14px;font-weight:700;cursor:pointer}
+.primary{background:var(--navy);color:white}.secondary{background:#e2e8f0;color:#172033}.danger{background:#fee2e2;color:#991b1b}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{flex:1}
+.tabs{display:flex;gap:8px;margin-bottom:14px}.tabs button{flex:1}
+.hidden{display:none!important}.device{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fbfdff}
+.device h3{margin-bottom:4px}.small{font-size:12px;color:var(--muted);line-height:1.5}
+.listitem{border:1px solid var(--line);padding:12px;border-radius:10px;margin:8px 0;background:#fff}
+.badge{font-size:11px;background:#e0f2fe;color:#075985;border-radius:20px;padding:4px 8px}
+.photo{margin-top:8px}.photo img{max-width:100%;max-height:180px;object-fit:contain;border-radius:8px;display:block;margin-top:6px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.card{padding:13px}header h1{font-size:20px}}
+@media print{body{background:white}header,.tabs,.no-print,button{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;border:0;padding:0;break-inside:avoid}.device{break-inside:avoid}input,select,textarea{border:0;padding:2px;font-size:11pt;appearance:none}.photo input{display:none}body.print-report .report-title{display:block}}
+</style>
+</head>
+<body>
+<header><h1>RFID Saha Analiz</h1><p>Çevrimdışı ilk prototip · Veriler bu tarayıcıda saklanır</p></header>
+<main>
+  <div class="tabs no-print">
+    <button class="primary" id="tabNew" onclick="showView('form')">＋ Yeni analiz</button>
+    <button class="secondary" id="tabHistory" onclick="showView('history')">Geçmiş analizler</button>
+  </div>
+  <section id="formView">
+    <div class="card">
+      <h2>1. Ön Analiz Bilgileri</h2>
+      <div class="grid">
+        <div><label>Analizi yapan kişi</label><input id="analyst" placeholder="Ad Soyad"></div>
+        <div><label>Firma</label><input id="company" value="Yargıcı"></div>
+      </div>
+      <label>Mağaza adı</label><input id="store" placeholder="Örn. Tema World Yargıcı">
+      <label>Mağaza konumu</label><input id="location" placeholder="AVM / ilçe / şehir">
+      <div class="grid">
+        <div><label>Kasa MiniDesk adedi</label><input id="cashCount" type="number" min="0" max="30" value="2" oninput="renderDevices()"></div>
+        <div><label>Depo MiniDesk adedi</label><input id="depotCount" type="number" min="0" max="30" value="3"></div>
+        <div><label>KabinID adedi</label><input id="cabinetCount" type="number" min="0" max="30" value="3"></div>
+        <div><label>AlarmID adedi</label><input id="alarmCount" type="number" min="0" max="30" value="2"></div>
+      </div>
+      <label>UPS mevcut mu?</label><select id="ups"><option>Hayır</option><option>Evet</option><option>Kontrol edilecek</option></select>
+      <label>Raspberry Pi adedi</label><input value="1 (sabit)" disabled>
+    </div>
+    <div class="card">
+      <h2>2. Kasa MiniDesk Gereksinimleri</h2>
+      <p class="small">Kasa adedi ilk bölümden otomatik alınır. Her kasa için konum ve gereksinim ayrı girilir.</p>
+      <div id="cashDevices"></div>
+      <label>Genel notlar</label>
+      <textarea id="cashNotes">Kasa MiniDesk boyutu: 305 × 205 × 40 mm
+Ağırlık: 2,30 kg
+Kasa masa uygunluğu ve cihaz yerleri kontrol edilmelidir.</textarea>
+    </div>
+    <div class="card">
+      <h2>Fotoğraflar</h2>
+      <label>Saha fotoğrafları</label>
+      <input id="photos" type="file" accept="image/*" capture="environment" multiple>
+      <div id="photoPreview" class="photo"></div>
+      <p class="small">Bu prototipte fotoğraflar kayda eklenir. Çok büyük fotoğraflar cihaz depolamasını hızlı doldurabilir.</p>
+    </div>
+    <div class="card no-print">
+      <div class="actions">
+        <button class="secondary" onclick="saveRecord(false)">Taslak kaydet</button>
+        <button class="primary" onclick="saveRecord(true)">Kaydet ve PDF oluştur</button>
+      </div>
+      <p class="small">PDF oluştur düğmesi tarayıcının yazdırma ekranını açar. Buradan “PDF olarak kaydet” seçilebilir.</p>
+    </div>
+  </section>
+  <section id="historyView" class="hidden">
+    <div class="card">
+      <h2>Geçmiş saha analizleri</h2>
+      <p class="small">Kayıtlar bu tarayıcı ve cihazda tutulur. Tarayıcı verileri temizlenirse kayıpları önlemek için JSON yedeği alın.</p>
+      <div class="actions no-print">
+        <button class="secondary" onclick="exportBackup()">Yedek indir</button>
+        <button class="secondary" onclick="document.getElementById('importFile').click()">Yedek geri yükle</button>
+        <input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
+      </div>
+      <div id="historyList"></div>
+    </div>
+  </section>
+</main>
+<script>
+const DBKEY='rfid_site_analysis_v1';
+let records=[];
+let currentPhotos=[];
+let editingId=null;
+try{records=JSON.parse(localStorage.getItem(DBKEY)||'[]')}catch(e){records=[]}
+const $=id=>document.getElementById(id);
+function showView(v){
+ $('formView').classList.toggle('hidden',v!=='form');
+ $('historyView').classList.toggle('hidden',v!=='history');
+ $('tabNew').className=v==='form'?'primary':'secondary';
+ $('tabHistory').className=v==='history'?'primary':'secondary';
+ if(v==='history')renderHistory();
+}
+function renderDevices(){
+ const n=Math.max(0,Math.min(30,parseInt($('cashCount').value||'0',10)));
+ const host=$('cashDevices'); const old=[...host.querySelectorAll('.device')].map(el=>({loc:el.querySelector('.loc').value,req:el.querySelector('.req').value,desc:el.querySelector('.desc').value}));
+ host.innerHTML='';
+ for(let i=0;i<n;i++){
+  const d=old[i]||{};
+  const div=document.createElement('div');div.className='device';
+  div.innerHTML=`<h3>Kasa ${i+1}</h3>
+   <label>Kasa konumu</label><input class="loc" placeholder="Örn. Giriş Kat Sağ Kasa" value="${esc(d.loc||'')}">
+   <label>Gereksinimler</label><select class="req">
+    <option>Network + Elektrik</option><option>Sadece Network</option><option>Sadece Elektrik</option><option>Mevcut altyapı yeterli</option><option>Diğer</option>
+   </select><label>Açıklama</label><input class="desc" placeholder="İsteğe bağlı açıklama" value="${esc(d.desc||'')}">`;
+  host.appendChild(div);div.querySelector('.req').value=d.req||'Network + Elektrik';
+ }
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('photos').addEventListener('change',async e=>{
+ currentPhotos=[];
+ const files=[...e.target.files];
+ for(const f of files){
+  try{const data=await compressImage(f);currentPhotos.push({name:f.name,data})}catch(err){alert('Bir fotoğraf okunamadı: '+f.name)}
+ }
+ renderPhotos();
+});
+function compressImage(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();reader.onerror=reject;reader.onload=()=>{
+   const img=new Image();img.onerror=reject;img.onload=()=>{
+    const max=1400,scale=Math.min(1,max/Math.max(img.width,img.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
+    canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+    resolve(canvas.toDataURL('image/jpeg',0.78));
+   };img.src=reader.result;
+  };reader.readAsDataURL(file);
+ });
+}
+function renderPhotos(){
+ $('photoPreview').innerHTML='';
+ currentPhotos.forEach(p=>{const div=document.createElement('div');div.innerHTML=`<div class="small">${esc(p.name)}</div><img src="${p.data}" alt="Saha fotoğrafı">`;$('photoPreview').appendChild(div)});
+}
+function getData(){
+ const devices=[...$('cashDevices').querySelectorAll('.device')].map((d,i)=>({name:'Kasa '+(i+1),location:d.querySelector('.loc').value,requirement:d.querySelector('.req').value,description:d.querySelector('.desc').value}));
+ return {id:editingId||('RFID-'+Date.now()),date:new Date().toLocaleString('tr-TR'),analyst:$('analyst').value,company:$('company').value,store:$('store').value,location:$('location').value,cashCount:$('cashCount').value,depotCount:$('depotCount').value,cabinetCount:$('cabinetCount').value,alarmCount:$('alarmCount').value,ups:$('ups').value,raspberryCount:1,cashDevices:devices,cashNotes:$('cashNotes').value,photos:currentPhotos};
+}
+function saveRecord(makePdf){
+ const data=getData();
+ if(!data.store.trim()){if(!confirm('Mağaza adı boş. Yine de kaydedilsin mi?'))return}
+ const idx=records.findIndex(r=>r.id===data.id);
+ if(idx>=0)records[idx]=data;else records.unshift(data);
+ try{localStorage.setItem(DBKEY,JSON.stringify(records))}
+ catch(e){alert('Cihaz depolama alanı dolmuş olabilir. Daha az/küçük fotoğraf ekleyip tekrar deneyin.');return}
+ editingId=data.id;
+ alert('Kayıt bu cihazda saklandı.');
+ if(makePdf){document.body.classList.add('printing');window.print();document.body.classList.remove('printing')}
+}
+function renderHistory(){
+ const host=$('historyList');host.innerHTML='';
+ if(!records.length){host.innerHTML='<p class="small">Henüz kayıt yok.</p>';return}
+ records.forEach(r=>{
+  const div=document.createElement('div');div.className='listitem';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px"><strong>${esc(r.store||'İsimsiz mağaza')}</strong><span class="badge">${esc(r.id)}</span></div><p class="small">${esc(r.date||'')} · ${esc(r.company||'')} · ${esc(r.cashCount||'0')} kasa</p><div class="actions no-print"><button class="secondary" data-act="open">Aç / düzenle</button><button class="primary" data-act="pdf">PDF oluştur</button><button class="secondary" data-act="json">Kaydı dışa aktar</button><button class="danger" data-act="del">Sil</button></div>`;
+  div.querySelector('[data-act=open]').onclick=()=>loadRecord(r.id);
+  div.querySelector('[data-act=pdf]').onclick=()=>{loadRecord(r.id);window.print()};
+  div.querySelector('[data-act=json]').onclick=()=>download(JSON.stringify(r,null,2),r.id+'.json','application/json');
+  div.querySelector('[data-act=del]').onclick=()=>{if(confirm('Bu kayıt silinsin mi?')){records=records.filter(x=>x.id!==r.id);persist();renderHistory()}};
+  host.appendChild(div);
+ });
+}
+function loadRecord(id){
+ const r=records.find(x=>x.id===id);if(!r)return;
+ editingId=r.id;
+ ['analyst','company','store','location','cashCount','depotCount','cabinetCount','alarmCount','ups','cashNotes'].forEach(k=>$(k).value=r[k]??'');
+ $('cashCount').value=r.cashCount||'0';renderDevices();
+ [...$('cashDevices').querySelectorAll('.device')].forEach((d,i)=>{const x=(r.cashDevices||[])[i]||{};d.querySelector('.loc').value=x.location||'';d.querySelector('.req').value=x.requirement||'Network + Elektrik';d.querySelector('.desc').value=x.description||''});
+ currentPhotos=r.photos||[];renderPhotos();showView('form');
+}
+function persist(){try{localStorage.setItem(DBKEY,JSON.stringify(records))}catch(e){alert('Depolama alanına yazılamadı.')}}
+function download(data,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+function exportBackup(){download(JSON.stringify(records,null,2),'rfid-saha-yedek-'+new Date().toISOString().slice(0,10)+'.json','application/json')}
+function importBackup(e){const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const incoming=JSON.parse(rd.result);if(!Array.isArray(incoming))throw 0;if(confirm('Yedek içe aktarılsın mı? Aynı kimlikli kayıtlar güncellenecek.')){incoming.forEach(x=>{const i=records.findIndex(r=>r.id===x.id);if(i>=0)records[i]=x;else records.push(x)});persist();renderHistory();alert('Yedek yüklendi.')}}catch(err){alert('Yedek dosyası okunamadı.')} };rd.readAsText(f);e.target.value=''}
+window.addEventListener('beforeprint',()=>{
+ document.querySelectorAll('input,textarea,select').forEach(el=>{if(el.type==='file')return;el.dataset.printvalue=el.value});
+});
+renderDevices();
+</script>
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Offline kayıt kurulamadı", err)));
+}
+</script>
+</body>
+</html>
