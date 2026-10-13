@@ -1,27 +1,15 @@
-RFID Saha Analiz - PWA prototipi
+RFID Saha Analiz - Güncel yayın paketi
 
-Bu klasör, Android telefona ana ekrandan kurulabilen çevrimdışı web uygulaması için hazırlanmıştır.
+GitHub'a yüklemek için bu klasörün İÇİNDEKİ tüm dosyaları repository'nin kök dizinine yükleyin:
+- index.html
+- manifest.webmanifest
+- sw.js
+- icons/ klasörü (içindeki iki simgeyle birlikte)
 
-Önemli:
-- PWA olarak kurmak için dosyalar ilk kez HTTPS üzerinden açılmalıdır. Ücretsiz seçenek: GitHub Pages.
-- İlk açılışta uygulama dosyaları önbelleğe alındıktan sonra internet olmadan açılabilir.
-- Kayıtlar tarayıcının yerel depolamasında tutulur. Tarayıcı verilerini temizlemek kayıtları silebilir; uygulamadaki "Yedek indir" seçeneğini düzenli kullanın.
-- Bu prototipte PDF oluşturma, tarayıcının Yazdır > PDF olarak kaydet ekranını kullanır.
-- Bu henüz nihai/kurumsal sürüm değildir; önce test edin ve gerçek saha verileri için yedek alın.
+Mevcut dosyalar sorulursa index.html ve sw.js dosyalarını güncelleyin; manifest.webmanifest ve icons klasörünü koruyun.
 
-Dosyalar:
-index.html - uygulama
-manifest.webmanifest - uygulama adı ve kurulum ayarları
-sw.js - çevrimdışı önbellek
-icons/ - uygulama simgeleri
-
-Android kurulum (GitHub Pages):
-1. GitHub'da ücretsiz hesap açın.
-2. Yeni bir repository oluşturun (ör. rfid-saha-analiz).
-3. Bu klasördeki tüm dosyaları ve icons klasörünü repository köküne yükleyin.
-4. Repository Settings > Pages bölümünde Deploy from a branch, main ve /(root) seçip kaydedin.
-5. Yayınlanan https://KULLANICI.github.io/rfid-saha-analiz/ adresini Android Chrome'da açın.
-6. Sayfa tamamen yüklendikten sonra Chrome menüsünden "Uygulamayı yükle" veya "Ana ekrana ekle" seçin.
-7. Uygulamayı bir kez açıp test edin. Sonra uçak modunda açılarak çevrimdışı çalışma kontrol edilebilir.
-
-İlk yükleme internet ister; sonraki kullanım çevrimdışı olabilir.
+Notlar:
+- U-Shops ve MiniDesk görselleri index.html dosyasının içine gömülüdür; ayrıca görsel dosyası yüklemek gerekmez.
+- PWA önbellek sürümü güncellendi.
+- Kayıtlar tarayıcının yerel depolamasındadır. Güncellemeden önce uygulamadaki yedekleme özelliğiyle kayıtlarınızı yedekleyin.
+- GitHub Pages için Settings > Pages altında Deploy from a branch, main ve /(root) seçili olmalıdır.
