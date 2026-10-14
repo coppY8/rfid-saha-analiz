@@ -88,16 +88,28 @@ hr{border:0;border-top:1px solid var(--line);margin:14px 0}
 .report-footer{border-top:1px solid #cbd5e1;padding-top:7px;margin-top:18px;font-size:8px;color:#64748b;display:flex;justify-content:space-between;gap:10px}
 @media(max-width:520px){.progress-summary{grid-template-columns:1fr}}
 @media print{
- @page{size:A4;margin:12mm}
- body.print-report{background:#fff;color:#172033;font-size:10pt}
+ @page{size:A4 portrait;margin:11mm 12mm 13mm}
+ html,body{margin:0!important;padding:0!important;background:#fff!important}
+ body.print-report{background:#fff;color:#172033;font-size:9.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
  body.print-report>header,body.print-report #homeView,body.print-report #formTabs,body.print-report #formView,body.print-report #historyView{display:none!important}
- body.print-report main{max-width:none;margin:0;padding:0}
- body.print-report #printReport.print-only{display:block!important}
- body.print-report .report-header,body.print-report .report-brand,body.print-report .report-stats,body.print-report .report-meta-grid,body.print-report .report-progress-list,body.print-report .report-photo-grid,body.print-report .report-fields{display:grid}
- body.print-report .report-header{display:flex}
- body.print-report .report-brand{display:flex;grid-template-columns:none}
- body.print-report .report-device,body.print-report .report-meta-item,body.print-report .report-stat,body.print-report .report-photo,body.print-report .report-progress-item{break-inside:avoid;page-break-inside:avoid}
- body.print-report .report-section>h2{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ body.print-report main{max-width:none;width:100%;margin:0;padding:0}
+ body.print-report #printReport.print-only{display:block!important;width:100%}
+ body.print-report .report-header{display:flex;align-items:center;gap:12px;padding-bottom:9px;margin-bottom:12px;break-inside:avoid;page-break-inside:avoid}
+ body.print-report .report-brand{display:flex;align-items:center;gap:10px;min-width:0}
+ body.print-report .report-brand img{width:76px;max-height:52px}
+ body.print-report .report-brand h1{font-size:18px}
+ body.print-report .report-stamp{font-size:8px;max-width:42%;overflow-wrap:anywhere}
+ body.print-report .report-section{margin:0 0 12px;break-inside:auto;page-break-inside:auto}
+ body.print-report .report-section>h2{break-after:avoid;page-break-after:avoid;font-size:11px;padding:7px 9px;margin-bottom:7px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+ body.print-report .report-meta-grid,body.print-report .report-fields,body.print-report .report-progress-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+ body.print-report .report-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+ body.print-report .report-device{break-inside:auto;page-break-inside:auto;margin-bottom:8px;padding:8px}
+ body.print-report .report-device-title,body.print-report .report-minidesk,body.print-report .report-fixed-note,body.print-report .report-meta-item,body.print-report .report-stat,body.print-report .report-field,body.print-report .report-progress-item{break-inside:avoid;page-break-inside:avoid}
+ body.print-report .report-photo-group{break-inside:avoid;page-break-inside:avoid;margin:7px 0 4px}
+ body.print-report .report-photo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ body.print-report .report-photo{break-inside:avoid;page-break-inside:avoid;margin:0;padding:3px}
+ body.print-report .report-photo img{height:35mm;max-height:35mm;object-fit:contain}
+ body.print-report .report-footer{font-size:7px;margin-top:10px;break-inside:avoid;page-break-inside:avoid}
  body.print-report .report-status,body.print-report .report-device-state,body.print-report .report-fixed-note,body.print-report .report-stat{print-color-adjust:exact;-webkit-print-color-adjust:exact}
  body.print-report img{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
@@ -513,14 +525,15 @@ function renderPrintReport(data){
  const stats=calculateProgress(data);
  const logo=$('header .brand-home img')?.src||'';
  const status=(data.status||'completed')==='draft';
+ const generatedAt=new Date().toLocaleString('tr-TR',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
  const sections=[
   {key:'cashDevices',title:'2. Kasa MiniDesk',kind:'minidesk',label:'Kasa MiniDesk'},
   {key:'depotDevices',title:'3. Depo MiniDesk',kind:'minidesk',label:'Depo MiniDesk'},
   {key:'cabinetDevices',title:'4. KabinID',kind:'cabinet',label:'KabinID'},
   {key:'alarmDevices',title:'5. AlarmID',kind:'alarm',label:'AlarmID'}
  ];
- let html=`<div class="report-header"><div class="report-brand">${logo?`<img src="${logo}" alt="U-Shops">`:''}<div><h1>RFID Saha Analiz Raporu</h1><p>Mağaza ön analiz ve sistem kurulum gereksinimleri</p></div></div><div class="report-stamp">Rapor No: ${esc(data.id||'—')}<br>Oluşturulma: ${esc(data.date||new Date().toLocaleString('tr-TR'))}<br><span class="report-status ${status?'draft':''}">${status?'Taslak — tamamlanmadı':'Saha analizi tamamlandı'}</span></div></div>`;
- html+=`<section class="report-section"><h2>1. Ön Analiz Bilgileri</h2><div class="report-meta-grid">${reportField('Analizi yapan kişi',data.analyst)}${reportField('Firma',data.company)}${reportField('Mağaza adı',data.store)}${reportField('Mağaza konumu',data.location)}${reportField('UPS mevcut mu?',data.ups)}${reportField('Mağaza kat adedi',data.floorCount)}${reportField('Analiz tarihi',data.date)}</div></section>`;
+ let html=`<div class="report-header"><div class="report-brand">${logo?`<img src="${logo}" alt="U-Shops">`:''}<div><h1>RFID Saha Analiz Raporu</h1><p>Mağaza ön analiz ve sistem kurulum gereksinimleri</p></div></div><div class="report-stamp">Rapor No: ${esc(data.id||'—')}<br>Rapor oluşturulma: ${esc(generatedAt)}<br><span class="report-status ${status?'draft':''}">${status?'Taslak — tamamlanmadı':'Saha analizi tamamlandı'}</span></div></div>`;
+ html+=`<section class="report-section"><h2>1. Ön Analiz Bilgileri</h2><div class="report-meta-grid">${reportField('Analizi yapan kişi',data.analyst)}${reportField('Firma',data.company)}${reportField('Mağaza adı',data.store)}${reportField('Mağaza konumu',data.location)}${reportField('UPS mevcut mu?',data.ups)}${reportField('Mağaza kat adedi',data.floorCount)}${reportField('Analiz / kayıt tarihi',data.date)}</div></section>`;
  sections.forEach(section=>{
   const devices=data[section.key]||[];if(!devices.length)return;
   html+=`<section class="report-section"><h2>${esc(section.title)}</h2>${devices.map((d,i)=>reportDeviceCard(d,i,section.kind,section.label)).join('')}</section>`;
